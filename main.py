@@ -1,53 +1,39 @@
-from sys import exit
-from time import sleep
+from prompt_toolkit import prompt
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.history import FileHistory
 
-from prompt_toolkit import PromptSession, print_formatted_text, ANSI
-from prompt_toolkit.shortcuts import CompleteStyle, set_title
-
-from free_assist.address_book import AddressBook
-from free_assist.notes import Notes
-from free_assist.cli_commands import CliCompleter, CliCmdParser, ExitCmd
-
-
-class CLI:
-    def __init__(self):
-        self.data = {"address_book": AddressBook(), "note_book": Notes(), "none": None}
-        self.parser = CliCmdParser()
-
-        self.session = PromptSession(completer=CliCompleter(), complete_style=CompleteStyle.MULTI_COLUMN)
-
-    def run(self):
-        set_title("Free assistant")
-        while True:
-            try:
-                input_str = self.session.prompt("Enter a command >> ")
-            except KeyboardInterrupt:
-                continue
-            if not input_str:
-                continue
-            try:
-                self.parser.cmd_parse(input_str)
-                data_item = self.data[getattr(self.parser.parsed_command, "data_name")]
-                result = self.parser.parsed_command(data_item)
-                if isinstance(result, str):
-                    print_formatted_text(ANSI(result))
-            except (ValueError, KeyError, IndexError) as err:
-                if str(err):
-                    print_formatted_text(ANSI(str(err)))
-                continue
-            except ExitCmd as msg:
-                print_formatted_text(ANSI(str(msg)))
-                sleep(1)
-                exit(0)
+from CLIbot.adressbook import start_ab
+from CLIbot.notebook import start_nb
+from CLIbot.file_parser import start_fp
+from CLIbot.command_parser import RainbowLexer
 
 
-def main():
-    try:
-        cli = CLI()
-        cli.run()
-    finally:
-        del cli
+def start():
+    while True:
+        with open("history.txt", "wb"):
+            pass
+        print("")
+        print("{:^70}".format("\033[34m What would you like to start with?\033[0m \n"))
+        print("{:<25} {:<25} {:<25} {:<25}".format("\033[32m addressbook \033[0m", "\033[32m notebook \033[0m",
+                                                   "\033[32m file parser \033[0m", "\033[32m quit \033[0m \n"))
+        user_input = prompt("Enter command >>> ",
+                            history=FileHistory('history.txt'),
+                            auto_suggest=AutoSuggestFromHistory(),
+                            completer=NestedCompleter.from_nested_dict({'addressbook': None, 'notebook': None,
+                                                                        'file parser': None, 'quit': None}),
+                            lexer=RainbowLexer()
+                            )
+        if user_input == "addressbook":
+            start_ab()
+        if user_input == "notebook":
+            start_nb()
+        if user_input == "file parser":
+            start_fp()
+        if user_input == "quit":
+            print('Good luck, it was nice to meet you!')
+            break
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    start()

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date
-from sqlalchemy.sql.schema import ForeignKey, Table
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
 from sqlalchemy.orm import relationship
 
 from database.db import Base, engine, session
@@ -12,28 +13,38 @@ association_table = Table(
 )
 
 
-class Contact(Base):
+class AddressBook(Base):
     __tablename__ = 'contacts'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(120), nullable=False)
-    phone = Column('Telephone', String(100), nullable=False)
-    email = Column('Email', String(100), nullable=True)
-    address = Column('Address', String(100), nullable=True)
-    birthday = Column('Birthday', Date, nullable=True)
+    id = Column('id', Integer, primary_key=True)
+    name = Column('name', String(75), nullable=False)
+    phone = Column('phone', String(50), nullable=True)
+    birthday = Column('birthday', DateTime, nullable=True)
+    email = Column('email', String(100), nullable=True)
+    address = Column('address', String(100), nullable=True)
 
 
 class Note(Base):
-    __tablename__ = 'notes'
+    __tablename__ = "notes"
     id = Column(Integer, primary_key=True)
-    text = Column('Text', String(255), nullable=False)
+    description = Column(String(200), nullable=False)
+    done = Column(Boolean, default=False)
+    created = Column(DateTime, default=datetime.now())
     tags = relationship("Tag", secondary=association_table, back_populates="notes")
 
 
 class Tag(Base):
-    __tablename__ = 'tags'
+    __tablename__ = "tags"
     id = Column(Integer, primary_key=True)
-    tag = Column('Tag', String(255), nullable=False)
+    tag = Column(String(60), nullable=False, unique=True)
     notes = relationship("Note", secondary=association_table, back_populates="tags")
+
+
+class Archive(Base):
+    __tablename__ = "archives"
+    id = Column(Integer, primary_key=True)
+    description = Column(String(200), nullable=False)
+    transferred = Column(DateTime, default=datetime.now())
+    tag = Column(String(60), nullable=False)
 
 
 Base.metadata.create_all(engine)
