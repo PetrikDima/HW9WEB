@@ -2,8 +2,7 @@ from prompt_toolkit import prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.history import FileHistory
-
-from CLIbot.adressbook import start_ab
+from CLIbot.addressbook import start_ab
 from CLIbot.notebook import start_nb
 from CLIbot.file_parser import start_fp
 from CLIbot.command_parser import RainbowLexer

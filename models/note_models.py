@@ -3,7 +3,8 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
 from sqlalchemy.orm import relationship
 
-from database.db import Base, engine, session
+from database.db import Base, session, engine
+
 
 association_table = Table(
     "tag_to_notes",
@@ -11,16 +12,6 @@ association_table = Table(
     Column("notes_id", ForeignKey("notes.id")),
     Column("tags_id", ForeignKey("tags.id")),
 )
-
-
-class AddressBook(Base):
-    __tablename__ = 'contacts'
-    id = Column('id', Integer, primary_key=True)
-    name = Column('name', String(75), nullable=False)
-    phone = Column('phone', String(50), nullable=True)
-    birthday = Column('birthday', DateTime, nullable=True)
-    email = Column('email', String(100), nullable=True)
-    address = Column('address', String(100), nullable=True)
 
 
 class Note(Base):

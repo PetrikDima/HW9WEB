@@ -1,4 +1,3 @@
-"""Модуль для роботи з нотатками"""
 from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -6,14 +5,10 @@ from prompt_toolkit.completion import NestedCompleter
 
 from CLIbot.command_parser import RainbowLexer
 import datetime
-import pickle
 import re
-from collections import UserDict
-from datetime import date
-from pathlib import Path
-import database.dml_note as dml
+import repository.dml_note as dml
 
-N = 3  # Кількість нотаток на сторінці
+N = 3
 
 
 class DateIsNotValid(Exception):
@@ -94,12 +89,14 @@ def add_note(*args):
     """Додає нотатку"""
     note_text = ' '.join(args)
     dml.add_note(note_text)
+    print('Successful add note')
 
 
 @InputError
 def change_note(*args):
     id_note, new_text = int(args[0]), ' '.join(args[1:])
     dml.change_note(id_note, new_text)
+    print(f'Successful change text in note {id_note}')
 
 
 @InputError
@@ -108,6 +105,7 @@ def del_note(*args):
     yes_no = input(f'Are you sure you want to delete the note ID:{id_note}? (Y/n) ')
     if yes_no == 'Y':
         dml.del_note(id_note)
+        print(f'Successful delete note {id_note}')
     else:
         print('Note not deleted')
 
@@ -117,21 +115,36 @@ def add_date(*args):
     """Додає дату нотатки"""
     id_note, exec_date = int(args[0]), args[1]
     dml.add_date(id_note, exec_date)
+    print(f'Successful add date to note {id_note}')
 
 
 def show_all(*args):
     """Повертає всі нотатки"""
-    dml.show_all()
+    sel = dml.show_all()
+    for s in sel:
+        print(f'Note id: {s.id}, date: {s.created}, done: {bool(s.done)}\n'
+              f'Text: {s.description}\n'
+              f'Tags: {[i.tag for i in s.tags]}\n'
+              f'---------------------------------------------------------\n')
 
 
 def show_archive(*args):
     """Повертає нотатки з архіву"""
-    dml.show_archived()
+    sel = dml.show_archived()
+    for s in sel:
+        print(f'Note id: {s.id}, date: {s.transferred}, tag: {s.tag}\n'
+              f'Text: {s.description}\n'
+              f'---------------------------------------------------------\n')
 
 
 def find_note(*args):
     """Повертає нотатки за входженням в текст"""
-    dml.find_note(args)
+    sel = dml.find_note()
+    som_st = ' '.join(args)
+    for s in sel:
+        created = s.created.strftime("%Y-%m-%d %H:%M:%S")
+        if som_st in s.description or som_st in created:
+            print(f'Note: {s.id}, description: {s.description}, created: {s.created}')
 
 
 @InputError
@@ -159,6 +172,7 @@ def return_note(*args):
     """Помічає нотатку як виконану"""
     id_note = int(args[0])
     dml.return_note(id_note)
+    print(f'Note with id {id_note} return successful')
 
 
 @InputError
@@ -166,6 +180,7 @@ def add_tag(*args):
     id_note = int(args[0])
     note_tags = re.sub(r'[;,.!?]', ' ', ' '.join(args[1:])).title().split()
     dml.add_tag(id_note, note_tags)
+    print(f'Tag/s added successfully to note with id {id_note}')
 
 
 @InputError

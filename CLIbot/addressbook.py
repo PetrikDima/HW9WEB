@@ -6,10 +6,10 @@ from datetime import datetime
 import re
 
 from CLIbot.command_parser import command_parser, RainbowLexer
-import database.dml_ab as dml
+import repository.dml_ab as dml
 
 
-N = 3  # кількість записів для представлення телефонної книги
+N = 3
 
 
 class Field:
@@ -179,11 +179,11 @@ class InputError:
             print('Error! Try command find or search "words" that find contact')
 
 
-def salute(*args):
+def salute():
     print('Hello! How can I help you?')
 
 
-@InputError
+# @InputError
 def add_contact(*args):
     name = Name(args[0])
     phone = Phone(args[1])
@@ -202,35 +202,47 @@ def add_contact(*args):
         emails = []
     if len(args) <= 4:
         address = Address(None)
-    dml.insert_adressbook(name, phone, birthday, emails, address)
+    dml.insert_addressbook(name, phone, birthday, emails, address)
+    print(f'add user {name} into database')
+
 
 
 @InputError
 def change_contact(*args):
     name, old_phone, new_phone = Name(args[0]), Phone(args[1]), Phone(args[2])
     dml.change_contact(name.value, old_phone.value, new_phone.value)
+    print(f'Successful change phone number')
 
 
 @InputError
 def show_phone(*args):
     name = Name(args[0])
-    dml.show_phone(name.value)
+    phone = dml.show_phone(name.value)
+    if phone:
+        print(f'Telephone: {phone}')
+    else:
+        print('Telephone is exist')
 
 
 @InputError
 def del_phone(*args):
     name = Name(args[0])
     dml.del_phone(name.value)
+    print(f"Successful remove phone in user: {name}")
 
 
-def show_all(*args):
-    dml.show_all()
+def show_all():
+    users = dml.show_all()
+    for u in users:
+        print(f'Id: {u.id} for user: {u.name}, phone: {u.phone}, birthday: {u.birthday}, email: {u.email}, ' +
+              f'address: {u.address}')
 
 
 @InputError
 def add_birthday(*args):
     name, birthday = Name(args[0]), Birthday(args[1])
     dml.add_birthday(name, datetime.strftime(birthday.value, '%Y-%m-%d'))
+    print(f"Successful add email to {name}")
 
 
 @InputError
@@ -260,6 +272,7 @@ def del_user(*args):
     yes_no = input(f'Are you sure you want to delete the user {name.value}? (Y/n) ')
     if yes_no == 'Y':
         dml.remove_user(name.value)
+        print(f'Successful remove user {name}')
     else:
         print('User not deleted')
 
@@ -268,6 +281,7 @@ def clear_all(*args):
     yes_no = input('Are you sure you want to delete all users? (Y/n) ')
     if yes_no == 'Y':
         dml.remove_all()
+        print('Successfully remove all users')
     else:
         print('Removal canceled')
 
@@ -276,18 +290,21 @@ def clear_all(*args):
 def add_email(*args):
     name, email = Name(args[0]), Email(args[1])
     dml.add_email(name.value, email.value)
+    print(f"Successful add email to {name}")
 
 
 @InputError
 def del_email(*args):
     name = Name(args[0])
     dml.del_email(name.value)
+    print(f'Successful delete email from user: {name}')
 
 
 @InputError
 def add_address(*args):
     name, address = Name(args[0]), Address(" ".join(args[1:]))
     dml.add_address(name.value, address.value)
+    print(f'Add/modify address {address} to user: {name}')
 
 
 def help_me(*args):
